@@ -1,0 +1,141 @@
+sudo dnf install -y dnf-plugins-core
+sudo dnf config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
+sudo dnf -y install terraform
+vim terra.tf
+terraform init
+terraform fmt
+terraform validate
+terraform plan
+terraform apply
+yum install tree -y
+tree -a
+cat terraform.tfstate
+
+---------------------------------------------------------------------------------------------------------------
+
+aws configure
+
+in vim file make this changes to create a security group and add ports.
+
+provider "aws" {
+  region  = "us-east-1"
+  profile = "default"
+}
+ 
+resource "aws_security_group" "test_sg" {
+  name        = "created_sec"
+  description = "Allow ssh and http"
+  vpc_id      = "vpc-00127a205c1badf43"
+ 
+  tags = {
+    Name = "test-sg"
+  }
+}
+ 
+resource "aws_vpc_security_group_ingress_rule" "allow_http_ipv4" {
+  security_group_id = aws_security_group.test_sg.id
+  cidr_ipv4         = "0.0.0.0/0"
+  from_port         = 80
+  ip_protocol       = "tcp"
+  to_port           = 80
+}
+ 
+resource "aws_vpc_security_group_ingress_rule" "allow_ssh_ipv4" {
+  security_group_id = aws_security_group.test_sg.id
+  cidr_ipv4         = "0.0.0.0/0"
+  from_port         = 22
+  ip_protocol       = "tcp"
+  to_port           = 22
+}
+ 
+resource "aws_vpc_security_group_egress_rule" "allow_all_traffic_ipv4" {
+  security_group_id = aws_security_group.test_sg.id
+  cidr_ipv4         = "0.0.0.0/0"
+  ip_protocol       = "-1"
+}
+ 
+resource "aws_instance" "devops-server" {
+  ami                    = "ami-0341d95f75f311023"
+  instance_type          = "t3.micro"
+  availability_zone      = "us-east-1a"
+  key_name               = "terra"
+  vpc_security_group_ids = [aws_security_group.test_sg.id]
+ 
+  tags = {
+    Name = "HelloWorld"
+  }
+}
+-----------------------------------------------------------------------------------------------------------------
+
+
+mkdir aaa
+cd aaa
+vim my-ec2-with-sb.tf
+^
+https://github.com/sanjayguruji/terra-code/blob/main/ec2-with-existing-sg
+
+provider "aws" {
+  region     = "us-east-1"
+  access_key = "AKIAR"
+  secret_key = "/BNje3mby"
+}
+ 
+data "aws_security_group" "previous-sg" {
+  id = "sg-07d5da45b1c7ad939"
+}
+ 
+data "aws_ami" "ubuntu" {
+  most_recent = true
+ 
+  filter {
+    name   = "name"
+    values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"]
+  }
+ 
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+ 
+  owners = ["099720109477"]
+}
+ 
+resource "aws_key_pair" "terra_key" {
+  key_name   = "terra.key"
+  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDH36vcY9Wwy+WpVCHMGOT1HmOkCfCFbtw6vhYtRnJMkbkNgmD7+S7ByXpYTdmJmg2cYRYxveTKxUfV3qDKivTawkUgWPs4AjY1jsytQW7yCIJSQXYg7lzanND76vhPKobCUx57YBNBcL9/ZuXorVa+tyKh4jBXWHpSL1oU3CbWAdQ7jhIX2TuSgnmuWUexakgBCAzGJuH+ZpawZ+Pc+boBnDUhLB4kJFP1t0Cs7Pe6hJpy1T6Qrxs4ZVf20b1JL595QoMcOiP8X+cGsLbTK1Odbo+EbpFVY81QUE58DWZusgTCtQXS8pfq7h/3jckDnAdJUEdEm9Z0OpRptIa26YMkKsKBNp/2MmwSVLvMuxXwegCtrGtf8HhbXLsWe4OwbIvcavKlmJqaNAgSsvPbQZ08k4T6qVimGxtF5fzLj2GJ5MfUZbkxJJZqIRpU647L7FH7P6q/pGNci/U0pMcD5F6gAyIMrtRN/T9pb6af+Gho6z6im3n9FptQyH4zY27wnMk= root@terra"
+}
+ 
+resource "aws_instance" "test" {
+  ami                    = data.aws_ami.ubuntu.id
+  instance_type          = "t3.micro"
+  availability_zone      = "us-east-1a"
+  key_name               = aws_key_pair.terra_key.key_name
+  vpc_security_group_ids = [data.aws_security_group.previous-sg.id]
+ 
+  root_block_device {
+    volume_size           = 25
+    volume_type           = "gp2"
+    delete_on_termination = true
+  }
+ 
+  ebs_block_device {
+    device_name           = "/dev/xvdb"
+    volume_size           = 10
+    volume_type           = "gp2"
+    delete_on_termination = true
+  }
+ 
+  tags = {
+    Name     = "hello-India"
+    Stage    = "testing"
+    Location = "India"
+  }
+}
+ 
+resource "aws_eip" "prajval-eip" {
+  instance = aws_instance.test.id
+
+enter this in .tf file.
+
+
+
