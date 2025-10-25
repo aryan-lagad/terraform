@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: devops
+spec:
+  containers:
+  - name: web-app
+    image: nginx:1.14
+    ports:
+    - containerPort: 80
