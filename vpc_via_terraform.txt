@@ -11,7 +11,7 @@ resource "aws_nat_gateway" "my-ngw" {
 }
 
 
-resource "aws_igw" "prod_igw"{
+resource "aws_internet_gateway" "prod_igw"{
  vpc_id = aws_vpc.prod_vpc.id
 
  tags = {s
@@ -125,5 +125,6 @@ resource "aws_instance" "aryan-server-private" {
   }
 
 }
+
 
 
